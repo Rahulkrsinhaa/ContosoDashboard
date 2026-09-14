@@ -81,7 +81,7 @@ ContosoDashboard is built using ASP.NET Core 8.0 with Blazor Server and provides
 
 ### 🔧 Technical Stack
 
-- **Framework**: ASP.NET Core 8.0
+- **Framework**: ASP.NET Core 10.0
 - **UI**: Blazor Server
 - **Database**: SQL Server LocalDB with Entity Framework Core
 - **Authentication**: Cookie-based mock authentication for training (Azure AD/Microsoft Entra ID ready)
@@ -133,11 +133,25 @@ public interface IFileStorageService
 
 **File upload best practice:** When implementing file uploads, generate unique file paths (using GUID) before database insertion to prevent duplicate key violations and orphaned records.
 
+## Continuous Integration
+
+The [Build and Test workflow](.github/workflows/build-and-test.yml) runs on every push and on pull requests targeting `main`. It checks out the repository, installs the .NET 10 SDK required by the project, restores application and test dependencies, builds the application without restoring again, and runs the existing test project.
+
+Run the same checks locally from the repository root before opening a pull request:
+
+```powershell
+dotnet restore .\ContosoDashboard.Tests\ContosoDashboard.Tests.csproj
+dotnet build .\ContosoDashboard\ContosoDashboard.csproj --no-restore
+dotnet test .\ContosoDashboard.Tests\ContosoDashboard.Tests.csproj --no-restore
+```
+
+Each failed command fails the workflow and preserves its error output in the corresponding GitHub Actions step log. Open the failed workflow run from the repository Actions tab and inspect the failed step for details.
+
 ## Getting Started
 
 ### Prerequisites
 
-- .NET 8.0 SDK or later
+- .NET 10.0 SDK or later
 - SQL Server LocalDB
 - Visual Studio 2022 or Visual Studio Code
 

@@ -4,7 +4,8 @@ Sync Impact Report
 - Modified principles: N/A (new constitution baseline)
 - Added sections: Core Principles, Training Constraints, Development Workflow, Governance
 - Removed sections: none
-- Follow-up TODOs: none
+- Follow-up TODOs: Configure the required CI status check in GitHub branch protection for `main`
+- Governance impact: Added CI-before-merge requirement; minor version increment
 -->
 
 # ContosoDashboard Constitution
@@ -35,6 +36,11 @@ This principle prevents IDOR-style issues and teaches the expectation that user 
 The codebase must favor clear naming, explicit relationships, small service boundaries, and direct intent over clever abstractions. Features must be implemented in ways that are easy to explain, review, and extend within the training environment. Complexity must be justified with a clear business need or a teaching objective.
 
 This principle keeps the repository approachable for training while preserving disciplined engineering habits that scale beyond the initial demo.
+
+### VI. CI Before Merge
+Every change must pass the repository's restore, build, and test workflow before it is eligible for merge. The `Build and Test` GitHub Actions check must be configured as a required status check for `main`; repository branch protection settings enforce this requirement outside the source tree.
+
+This principle makes the repository's minimum verification contract visible and prevents known build or test failures from being merged into the training baseline.
 
 ## Training Constraints
 
@@ -69,4 +75,4 @@ The project follows semantic versioning for governance updates:
 
 Compliance review is expected for any change affecting access control, business rules, identity flows, or architecture boundaries. If a change appears inconsistent with the Constitution, the team must either revise the work or document a justified exception before approval.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-14 | **Last Amended**: 2026-09-14
+**Version**: 1.1.0 | **Ratified**: 2026-09-14 | **Last Amended**: 2026-09-14
