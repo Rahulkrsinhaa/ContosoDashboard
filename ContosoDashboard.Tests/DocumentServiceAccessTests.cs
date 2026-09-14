@@ -2,6 +2,7 @@ using ContosoDashboard.Data;
 using ContosoDashboard.Models;
 using ContosoDashboard.Services;
 using Microsoft.EntityFrameworkCore;
+using Xunit;
 
 namespace ContosoDashboard.Tests;
 
@@ -42,15 +43,4 @@ public class DocumentServiceAccessTests
                 Tags = "test"
             }, 1));
     }
-}
-
-public class UploadDocumentRequest
-{
-    public string FileName { get; set; } = string.Empty;
-    public string Title { get; set; } = string.Empty;
-    public DocumentCategory Category { get; set; }
-    public string ContentType { get; set; } = string.Empty;
-    public MemoryStream Stream { get; set; } = new();
-    public int? ProjectId { get; set; }
-    public string? Tags { get; set; }
 }
