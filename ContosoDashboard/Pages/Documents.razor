@@ -1,0 +1,217 @@
+@page "/documents"
+@using ContosoDashboard.Models
+@using ContosoDashboard.Services
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject IDocumentService DocumentService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JS
+
+<PageTitle>Documents - ContosoDashboard</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Documents</h1>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Search</label>
+                    <input class="form-control" value="@searchText" @oninput="OnSearchChanged" placeholder="Search by title, file name, tag, or uploader" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Category</label>
+                    <select class="form-select" @bind="selectedCategory">
+                        <option value="">All categories</option>
+                        @foreach (var category in Enum.GetValues<DocumentCategory>())
+                        {
+                            <option value="@category">@category</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Upload</label>
+                    <InputFile OnChange="HandleUpload" class="form-control" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(uploadStatusMessage))
+    {
+        <div class="alert @uploadStatusClass">@uploadStatusMessage</div>
+    }
+
+    @if (documents == null)
+    {
+        <p><em>Loading documents...</em></p>
+    }
+    else if (!documents.Any())
+    {
+        <div class="alert alert-info">No documents found.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Uploaded</th>
+                        <th>File</th>
+                        <th>Project</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var document in documents)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@document.Title</strong>
+                                @if (!string.IsNullOrWhiteSpace(document.Description))
+                                {
+                                    <br />
+                                    <small class="text-muted">@document.Description</small>
+                                }
+                            </td>
+                            <td>@document.Category</td>
+                            <td>@document.UploadedDate.ToString("MMM dd, yyyy")</td>
+                            <td>@document.FileName</td>
+                            <td>@(document.Project?.Name ?? "Personal")</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => Download(document.DocumentId)">Download</button>
+                                @if (document.UploadedByUserId == currentUserId)
+                                {
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(document.DocumentId)">Delete</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Document>? documents;
+    private string searchText = string.Empty;
+    private string selectedCategory = string.Empty;
+    private int currentUserId;
+    private string uploadStatusMessage = string.Empty;
+    private string uploadStatusClass = "alert-success";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdClaim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            currentUserId = userId;
+        }
+
+        await LoadDocumentsAsync();
+    }
+
+    private async Task LoadDocumentsAsync()
+    {
+        if (currentUserId == 0)
+        {
+            return;
+        }
+
+        documents = await DocumentService.SearchAsync(currentUserId, searchText);
+
+        if (!string.IsNullOrWhiteSpace(selectedCategory) && Enum.TryParse<DocumentCategory>(selectedCategory, out var category))
+        {
+            documents = documents.Where(d => d.Category == category).ToList();
+        }
+    }
+
+    private async Task OnSearchChanged(ChangeEventArgs args)
+    {
+        searchText = args.Value?.ToString() ?? string.Empty;
+        await LoadDocumentsAsync();
+    }
+
+    private async Task HandleUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null)
+        {
+            return;
+        }
+
+        try
+        {
+            using var stream = file.OpenReadStream(25 * 1024 * 1024);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+
+            var request = new UploadDocumentRequest
+            {
+                FileName = file.Name,
+                Title = file.Name,
+                Category = DocumentCategory.Other,
+                ContentType = file.ContentType,
+                Stream = memoryStream,
+                ProjectId = null,
+                Tags = string.Empty,
+                Description = string.Empty
+            };
+
+            await DocumentService.UploadAsync(request, currentUserId);
+            uploadStatusMessage = "Document uploaded successfully.";
+            uploadStatusClass = "alert-success";
+            await LoadDocumentsAsync();
+        }
+        catch (Exception ex)
+        {
+            uploadStatusMessage = ex.Message;
+            uploadStatusClass = "alert-danger";
+        }
+    }
+
+    private async Task Download(int documentId)
+    {
+        try
+        {
+            var stream = await DocumentService.DownloadAsync(documentId, currentUserId);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var bytes = ms.ToArray();
+            await JS.InvokeVoidAsync("BlazorDownloadFile", "document.bin", "application/octet-stream", bytes);
+        }
+        catch (Exception ex)
+        {
+            uploadStatusMessage = ex.Message;
+            uploadStatusClass = "alert-danger";
+        }
+    }
+
+    private async Task Delete(int documentId)
+    {
+        try
+        {
+            var removed = await DocumentService.DeleteAsync(documentId, currentUserId);
+            if (removed)
+            {
+                uploadStatusMessage = "Document deleted.";
+                uploadStatusClass = "alert-success";
+                await LoadDocumentsAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            uploadStatusMessage = ex.Message;
+            uploadStatusClass = "alert-danger";
+        }
+    }
+}

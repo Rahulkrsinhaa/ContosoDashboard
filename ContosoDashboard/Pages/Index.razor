@@ -6,6 +6,7 @@
 @inject IDashboardService DashboardService
 @inject INotificationService NotificationService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IDocumentService DocumentService
 
 <PageTitle>Dashboard - ContosoDashboard</PageTitle>
 
@@ -52,6 +53,37 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-3 mb-3">
+                <div class="card summary-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Documents</h5>
+                        <p class="card-text display-4 text-success">@summary.TotalDocuments</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (recentDocuments != null && recentDocuments.Any())
+    {
+        <div class="row mb-4">
+            <div class="col">
+                <h3>Recent Documents</h3>
+                <div class="list-group">
+                    @foreach (var document in recentDocuments)
+                    {
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@document.Title</strong><br />
+                                    <small class="text-muted">@document.Category • @document.FileName</small>
+                                </div>
+                                <small class="text-muted">@document.UploadedDate.ToString("MMM dd")</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
     }
 
@@ -85,6 +117,9 @@
                 </a>
                 <a href="/projects" class="list-group-item list-group-item-action">
                     <i class="bi bi-folder"></i> View My Projects
+                </a>
+                <a href="/documents" class="list-group-item list-group-item-action">
+                    <i class="bi bi-file-earmark-text"></i> Manage Documents
                 </a>
                 <a href="/notifications" class="list-group-item list-group-item-action">
                     <i class="bi bi-bell"></i> View Notifications
@@ -124,6 +159,7 @@
     private DashboardSummary? summary;
     private List<Announcement>? announcements;
     private List<Notification>? recentNotifications;
+    private List<Document>? recentDocuments;
     private string userName = "User";
     private int currentUserId = 0;
 
@@ -146,6 +182,8 @@
             summary = await DashboardService.GetDashboardSummaryAsync(currentUserId);
             announcements = await DashboardService.GetActiveAnnouncementsAsync();
             recentNotifications = await NotificationService.GetUserNotificationsAsync(currentUserId);
+            recentDocuments = await DocumentService.GetAccessibleDocumentsAsync(currentUserId);
+            recentDocuments = recentDocuments.Take(5).ToList();
         }
     }
 

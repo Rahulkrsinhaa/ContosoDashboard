@@ -5,6 +5,7 @@
 @using System.Security.Claims
 @attribute [Authorize]
 @inject IProjectService ProjectService
+@inject IDocumentService DocumentService
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -151,6 +152,37 @@
                         }
                     </div>
                 </div>
+
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Project Documents</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (projectDocuments == null || !projectDocuments.Any())
+                        {
+                            <p class="text-muted">No project documents uploaded yet.</p>
+                        }
+                        else
+                        {
+                            <div class="list-group">
+                                @foreach (var document in projectDocuments)
+                                {
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <strong>@document.Title</strong><br />
+                                                <small class="text-muted">@document.Category • @document.FileName</small>
+                                            </div>
+                                            <div>
+                                                <a class="btn btn-sm btn-outline-primary" href="/documents?documentId=@document.DocumentId">Open</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
 
             <div class="col-md-4">
@@ -237,6 +269,7 @@
     public int ProjectId { get; set; }
 
     private Project? project;
+    private List<Document>? projectDocuments;
     private int currentUserId = 0;
 
     protected override async Task OnInitializedAsync()
@@ -253,6 +286,10 @@
         if (currentUserId > 0)
         {
             project = await ProjectService.GetProjectByIdAsync(ProjectId, currentUserId);
+            if (project != null)
+            {
+                projectDocuments = await DocumentService.GetAccessibleDocumentsAsync(currentUserId, ProjectId);
+            }
         }
         
         if (project == null)

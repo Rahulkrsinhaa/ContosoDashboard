@@ -5,6 +5,13 @@
 **Status**: Draft  
 **Input**: User description: "StakeholderDocs/document-upload-and-management-feature.md"
 
+## Clarifications
+
+### Session 2026-09-14
+- Q: Which document permission model should the feature use for project files across the existing roles? → A: Only the uploader can manage the file, but all project members can view and download it.
+- Q: Should a document replacement keep the original document history and ID, or is a replacement treated as a new file version? → A: Keep the same document record and update the file content while preserving the original record ID and audit trail.
+- Q: Which users should be allowed to delete a project document when they are not the uploader but are authorized by the project context? → A: Only the original uploader can delete their own document.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Upload and organize work documents (Priority: P1)
@@ -20,6 +27,7 @@ An employee needs a secure place to upload and organize files that support their
 1. **Given** the employee is signed in and has access to a project or personal workspace, **When** they upload a valid document with a title, category, and optional tags, **Then** the file is stored securely and appears in the appropriate document list for that user and project context.
 2. **Given** the employee uploads a file that is too large or in an unsupported format, **When** they submit the upload, **Then** the system rejects it with a clear error and does not create a document record.
 3. **Given** the employee has uploaded documents, **When** they filter, sort, or search by relevant metadata, **Then** they can locate the correct document quickly and only see items they are allowed to access.
+4. **Given** an authorized user replaces a document with a new file, **When** the replacement is saved, **Then** the same document record remains, the new file content is visible, and the system preserves the audit trail for the update.
 
 ---
 
@@ -36,6 +44,7 @@ A project team member needs to share approved documents with specific teammates 
 1. **Given** the document owner has permission to share a file, **When** they grant access to a specific user or project audience, **Then** the recipient receives an in-app notification and can access the shared document based on the defined permissions.
 2. **Given** a recipient has access to a shared document, **When** they view the shared documents area, **Then** they see the document with the correct metadata and can preview or download it when allowed.
 3. **Given** a user does not have permission, **When** they attempt to open or download a shared document, **Then** access is denied and the document is not exposed.
+4. **Given** a project document is shared within a project team, **When** a user views that project, **Then** they can see and download the file, but only the original uploader can edit or delete that document unless an explicit admin exception is granted outside the standard role model.
 
 ---
 
@@ -71,14 +80,14 @@ Administrators and project managers need a reliable record of document activity 
 - **FR-002**: The system MUST require a document title and category at upload time, while allowing optional description, project association, and tags.
 - **FR-003**: The system MUST reject unsupported file types and files that exceed the maximum size limit with clear error messages.
 - **FR-004**: The system MUST record document metadata including uploader, upload date, file size, file type, and project context when relevant.
-- **FR-005**: The system MUST store uploaded files in a secure location with access rules aligned to the current user and assigned permissions.
+- **FR-005**: The system MUST store uploaded files in a secure location with access rules aligned to the current user, project role, and assigned permissions.
 - **FR-006**: The system MUST allow users to view, sort, filter, and search documents they are authorized to access.
 - **FR-007**: The system MUST provide both a personal documents view and a project documents view that reflect user permissions and project context.
-- **FR-008**: The system MUST allow authorized users to preview or download documents they are permitted to access.
-- **FR-009**: The system MUST allow owners or designated managers to edit document metadata and replace an uploaded file with an updated version.
-- **FR-010**: The system MUST allow owners and designated managers to delete documents after confirmation.
+- **FR-008**: The system MUST allow project members to view and download project documents, while the original uploader retains management rights for that file.
+- **FR-009**: The system MUST allow the original uploader to edit document metadata and replace an uploaded file with an updated version while preserving the original document record and audit history.
+- **FR-010**: The system MUST allow only the original uploader to delete their document after confirmation, while administrators retain any separate audit or platform-level exception controls outside the standard role model.
 - **FR-011**: The system MUST support sharing a document with specific users or teams and notify recipients through the in-app notification system.
-- **FR-012**: The system MUST expose shared documents in the recipient’s accessible views without violating permissions.
+- **FR-012**: The system MUST expose shared documents in the recipient’s accessible views without violating permissions and must preserve the project-member read access model for shared project files.
 - **FR-013**: The system MUST allow documents to be associated with projects and tasks where relevant and surface them in the correct context.
 - **FR-014**: The system MUST include a recent documents area on the dashboard and show document counts in summary views where appropriate.
 - **FR-015**: The system MUST log document-related activity including upload, download, edit, share, and deletion actions for audit and reporting.
