@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 @inject IDocumentService DocumentService
+@inject IUserService UserService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JS
 
@@ -44,6 +45,20 @@
     @if (!string.IsNullOrWhiteSpace(uploadStatusMessage))
     {
         <div class="alert @uploadStatusClass">@uploadStatusMessage</div>
+    }
+
+    @if (activitySummary != null)
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5>Document Activity</h5>
+                <span class="me-3">Actions: @activitySummary.TotalActions</span>
+                <span class="me-3">Uploads: @activitySummary.Uploads</span>
+                <span class="me-3">Downloads: @activitySummary.Downloads</span>
+                <span class="me-3">Shares: @activitySummary.Shares</span>
+                <span>Deletes: @activitySummary.Deletes</span>
+            </div>
+        </div>
     }
 
     @if (documents == null)
@@ -88,6 +103,11 @@
                                 <button class="btn btn-sm btn-outline-primary me-2" @onclick="() => Download(document.DocumentId)">Download</button>
                                 @if (document.UploadedByUserId == currentUserId)
                                 {
+                                    <button class="btn btn-sm btn-outline-secondary me-2" @onclick="() => StartShare(document.DocumentId)">Share</button>
+                                    <label class="btn btn-sm btn-outline-warning me-2">
+                                        Replace
+                                        <InputFile OnChange="e => HandleReplace(document.DocumentId, e)" class="d-none" />
+                                    </label>
                                     <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(document.DocumentId)">Delete</button>
                                 }
                             </td>
@@ -99,6 +119,33 @@
     }
 </div>
 
+@if (shareDocumentId.HasValue)
+{
+    <div class="modal d-block" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,.35);">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title">Share document</h5></div>
+                <div class="modal-body">
+                    <label class="form-label">Recipient</label>
+                    <select class="form-select" @bind="shareRecipientId">
+                        <option value="0">Select a user</option>
+                        @foreach (var user in shareRecipients)
+                        {
+                            <option value="@user.UserId">@user.DisplayName</option>
+                        }
+                    </select>
+                    <label class="form-label mt-3">Message</label>
+                    <input class="form-control" @bind="shareMessage" maxlength="500" />
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CancelShare">Cancel</button>
+                    <button class="btn btn-primary" @onclick="ShareDocument" disabled="@(shareRecipientId == 0)">Share</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<Document>? documents;
     private string searchText = string.Empty;
@@ -106,6 +153,11 @@
     private int currentUserId;
     private string uploadStatusMessage = string.Empty;
     private string uploadStatusClass = "alert-success";
+    private List<User> shareRecipients = new();
+    private int? shareDocumentId;
+    private int shareRecipientId;
+    private string shareMessage = string.Empty;
+    private DocumentActivitySummary? activitySummary;
 
     protected override async Task OnInitializedAsync()
     {
@@ -115,6 +167,16 @@
         if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
         {
             currentUserId = userId;
+        }
+
+        shareRecipients = (await UserService.GetAllUsersAsync()).Where(u => u.UserId != currentUserId).ToList();
+        try
+        {
+            activitySummary = await DocumentService.GetActivitySummaryAsync(currentUserId);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            activitySummary = null;
         }
 
         await LoadDocumentsAsync();
@@ -207,6 +269,56 @@
                 uploadStatusClass = "alert-success";
                 await LoadDocumentsAsync();
             }
+        }
+        catch (Exception ex)
+        {
+            uploadStatusMessage = ex.Message;
+            uploadStatusClass = "alert-danger";
+        }
+    }
+
+    private void StartShare(int documentId)
+    {
+        shareDocumentId = documentId;
+        shareRecipientId = 0;
+        shareMessage = string.Empty;
+    }
+
+    private void CancelShare()
+    {
+        shareDocumentId = null;
+    }
+
+    private async Task ShareDocument()
+    {
+        if (!shareDocumentId.HasValue || shareRecipientId == 0)
+        {
+            return;
+        }
+
+        var shared = await DocumentService.ShareAsync(shareDocumentId.Value, shareRecipientId, shareMessage, currentUserId);
+        uploadStatusMessage = shared ? "Document shared successfully." : "The document could not be shared.";
+        uploadStatusClass = shared ? "alert-success" : "alert-danger";
+        shareDocumentId = null;
+    }
+
+    private async Task HandleReplace(int documentId, InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null)
+        {
+            return;
+        }
+
+        try
+        {
+            using var stream = file.OpenReadStream(25 * 1024 * 1024);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            await DocumentService.ReplaceFileAsync(documentId, memoryStream, file.Name, file.ContentType, currentUserId);
+            uploadStatusMessage = "Document replaced successfully.";
+            uploadStatusClass = "alert-success";
+            await LoadDocumentsAsync();
         }
         catch (Exception ex)
         {

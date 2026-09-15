@@ -83,7 +83,7 @@ ContosoDashboard is built using ASP.NET Core 8.0 with Blazor Server and provides
 
 - **Framework**: ASP.NET Core 10.0
 - **UI**: Blazor Server
-- **Database**: SQL Server LocalDB with Entity Framework Core
+- **Database**: SQLite with Entity Framework Core
 - **Authentication**: Cookie-based mock authentication for training (Azure AD/Microsoft Entra ID ready)
 - **Authorization**: Claims-based identity with role-based access control
 - **Styling**: Bootstrap 5.3 with Bootstrap Icons
@@ -97,7 +97,7 @@ ContosoDashboard is built using ASP.NET Core 8.0 with Blazor Server and provides
 This training application follows an **offline-first architecture** with abstraction layers that enable seamless migration to Azure services:
 
 **Current Implementation (Training/Offline):**
-- **Database**: SQL Server LocalDB (offline development database)
+- **Database**: SQLite file database (offline development database)
 - **File Storage**: Local filesystem for any file-based features
 - **Authentication**: Cookie-based mock authentication
 
@@ -152,7 +152,7 @@ Each failed command fails the workflow and preserves its error output in the cor
 ### Prerequisites
 
 - .NET 10.0 SDK or later
-- SQL Server LocalDB
+- No database server is required; SQLite is created automatically in the application directory.
 - Visual Studio 2022 or Visual Studio Code
 
 ### Quick Start
@@ -163,7 +163,7 @@ Each failed command fails the workflow and preserves its error output in the cor
    cd ContosoDashboard
    ```
 
-2. **Run the application** (database will be created automatically):
+2. **Run the application** (the SQLite database will be created automatically):
 
    ```powershell
    dotnet run
@@ -173,7 +173,7 @@ Each failed command fails the workflow and preserves its error output in the cor
 
 4. **Login** - Select any user from the dropdown (no password required)
 
-The application automatically creates and seeds the database on first run with sample users, projects, tasks, and announcements.
+The application automatically creates and seeds `contosodashboard.db` on first run with sample users, projects, tasks, and announcements. Delete that file to reset the local training database.
 
 ### Testing Security Features
 

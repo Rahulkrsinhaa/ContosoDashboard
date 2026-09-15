@@ -63,11 +63,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T016 [P] [US2] Add sharing and recipient logic to ContosoDashboard/Models/DocumentShare.cs and the document service layer in ContosoDashboard/Services/DocumentService.cs
-- [ ] T017 [US2] Implement notification creation for document shares in ContosoDashboard/Services/NotificationService.cs
-- [ ] T018 [P] [US2] Add shared-document views and recipient access handling in ContosoDashboard/Pages/Documents.razor
-- [ ] T019 [US2] Update project/task context so related documents are viewable from ContosoDashboard/Pages/Tasks.razor and ContosoDashboard/Pages/ProjectDetails.razor
-- [ ] T020 [US2] Validate denied access behavior for unauthorized preview/download attempts in ContosoDashboard/Services/DocumentService.cs
+- [X] T016 [P] [US2] Add sharing and recipient logic to ContosoDashboard/Models/DocumentShare.cs and the document service layer in ContosoDashboard/Services/DocumentService.cs
+- [X] T017 [US2] Implement notification creation for document shares in ContosoDashboard/Services/NotificationService.cs
+- [X] T018 [P] [US2] Add shared-document views and recipient access handling in ContosoDashboard/Pages/Documents.razor
+- [X] T019 [US2] Update project/task context so related documents are viewable from ContosoDashboard/Pages/Tasks.razor and ContosoDashboard/Pages/ProjectDetails.razor
+- [X] T020 [US2] Validate denied access behavior for unauthorized preview/download attempts in ContosoDashboard/Services/DocumentService.cs
 
 **Checkpoint**: At this point, User Stories 1 and 2 should both work independently.
 
@@ -81,11 +81,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T021 [P] [US3] Add audit logging model and persistence in ContosoDashboard/Models/DocumentAuditEntry.cs and ContosoDashboard/Data/ApplicationDbContext.cs
-- [ ] T022 [US3] Implement activity recording for upload, download, share, edit, and delete operations in ContosoDashboard/Services/DocumentService.cs
-- [ ] T023 [P] [US3] Add the document reporting and audit summary experience in ContosoDashboard/Pages/Documents.razor or ContosoDashboard/Pages/Reports.razor
-- [ ] T024 [US3] Add aggregation logic for uploader activity, file-category trends, and access patterns in ContosoDashboard/Services/DocumentService.cs
-- [ ] T025 [US3] Confirm the feature aligns with the approved quickstart validation in ContosoDashboard/specs/001-document-upload-management/quickstart.md
+- [X] T021 [P] [US3] Add audit logging model and persistence in ContosoDashboard/Models/DocumentAuditEntry.cs and ContosoDashboard/Data/ApplicationDbContext.cs
+- [X] T022 [US3] Implement activity recording for upload, download, share, edit, and delete operations in ContosoDashboard/Services/DocumentService.cs
+- [X] T023 [P] [US3] Add the document reporting and audit summary experience in ContosoDashboard/Pages/Documents.razor or ContosoDashboard/Pages/Reports.razor
+- [X] T024 [US3] Add aggregation logic for uploader activity, file-category trends, and access patterns in ContosoDashboard/Services/DocumentService.cs
+- [X] T025 [US3] Confirm the feature aligns with the approved quickstart validation in ContosoDashboard/specs/001-document-upload-management/quickstart.md
 
 **Checkpoint**: All user stories should now be independently functional.
 
@@ -95,10 +95,10 @@
 
 **Purpose**: Final hardening across the full feature.
 
-- [ ] T026 [P] Perform access-control review and regression validation across ContosoDashboard/Services/DocumentService.cs, ContosoDashboard/Services/ProjectService.cs, and ContosoDashboard/Services/TaskService.cs
-- [ ] T027 [P] Review and tighten validation for file type, size, and user-controlled naming in ContosoDashboard/Services/LocalFileStorageService.cs and ContosoDashboard/Services/DocumentService.cs
-- [ ] T028 Update training documentation and usage notes in README.md and ContosoDashboard/specs/001-document-upload-management/quickstart.md
-- [ ] T029 run a full smoke test against the document workflow and confirm the repository remains consistent with the specification in ContosoDashboard/specs/001-document-upload-management/spec.md
+- [X] T026 [P] Perform access-control review and regression validation across ContosoDashboard/Services/DocumentService.cs, ContosoDashboard/Services/ProjectService.cs, and ContosoDashboard/Services/TaskService.cs
+- [X] T027 [P] Review and tighten validation for file type, size, and user-controlled naming in ContosoDashboard/Services/LocalFileStorageService.cs and ContosoDashboard/Services/DocumentService.cs
+- [X] T028 Update training documentation and usage notes in README.md and ContosoDashboard/specs/001-document-upload-management/quickstart.md
+- [X] T029 run a full smoke test against the document workflow and confirm the repository remains consistent with the specification in ContosoDashboard/specs/001-document-upload-management/spec.md
 
 ---
 

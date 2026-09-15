@@ -46,10 +46,7 @@ public class LocalFileStorageService : IFileStorageService
             return;
         }
 
-        var absolutePath = storedPath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
-        var filePath = absolutePath.StartsWith(_storageRoot, StringComparison.OrdinalIgnoreCase)
-            ? absolutePath
-            : Path.Combine(_storageRoot, Path.GetFileName(absolutePath));
+        var filePath = ResolveStoragePath(storedPath);
 
         if (File.Exists(filePath))
         {
@@ -64,10 +61,7 @@ public class LocalFileStorageService : IFileStorageService
             throw new InvalidOperationException("Document path is missing.");
         }
 
-        var absolutePath = storedPath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
-        var resolvedPath = absolutePath.StartsWith(_storageRoot, StringComparison.OrdinalIgnoreCase)
-            ? absolutePath
-            : Path.Combine(_storageRoot, Path.GetFileName(absolutePath));
+        var resolvedPath = ResolveStoragePath(storedPath);
 
         if (!File.Exists(resolvedPath))
         {
@@ -75,5 +69,21 @@ public class LocalFileStorageService : IFileStorageService
         }
 
         return Task.FromResult<Stream>(File.OpenRead(resolvedPath));
+    }
+
+    private string ResolveStoragePath(string storedPath)
+    {
+        var normalizedRoot = Path.GetFullPath(_storageRoot)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var candidate = Path.IsPathRooted(storedPath)
+            ? Path.GetFullPath(storedPath)
+            : Path.GetFullPath(Path.Combine(_storageRoot, Path.GetFileName(storedPath)));
+
+        if (!candidate.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("The stored document path is outside the document storage root.");
+        }
+
+        return candidate;
     }
 }
